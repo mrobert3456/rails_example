@@ -1,0 +1,38 @@
+version: "3"
+name: rails_example_stack
+services:
+    devenv:
+        hostname: devenv
+        container_name: devenv
+        build: . # build image via dockerfile -> . means that Dockerfile is located where the podman.compose yaml iscd
+        command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 3000 -b '0.0.0.0'"
+        ports:
+            - "3000:3000"
+        volumes:
+            - .:/rails_app
+        depends_on:
+            - postgresdb
+        environment:
+            - DB_USERNAME=postgres
+            - DB_PASSWORD=mysecretpassword
+            - DB_HOST=postgresdb # name of the postgres service
+            - DB_PORT=5432
+    postgresdb:
+        image: postgres
+        ports:
+            - "5432:5432"
+        volumes:
+            - postgresvolume:/var/lib/postgres/data
+        environment:
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=mysecretpassword
+            - POSTGRES_DB=postgres
+    pgadmin:
+        image: dpage/pgadmin4
+        ports:
+            - "5050:80"
+        environment:
+            - PGADMIN_DEFAULT_EMAIL=random@domain.com
+            - PGADMIN_DEFAULT_PASSWORD=password
+volumes:
+    postgresvolume:
